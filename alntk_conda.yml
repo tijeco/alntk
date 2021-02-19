@@ -1,0 +1,16 @@
+name: alntk
+channels:
+  - defaults
+  - anaconda
+  - conda-forge
+  - bioconda
+
+dependencies:
+  - scipy=1.6.0
+  - pandas=1.2.1
+  - setuptools=52.0.0
+  - biopython=1.78
+
+
+
+
