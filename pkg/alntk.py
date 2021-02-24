@@ -43,7 +43,6 @@ class ParseCommands(object):
     
 
 def run():
-	print("hello world")
 	alntk_args = ParseCommands().args
 	alignment_file = alntk_args.fasta
 	alignment = AlignIO.read(open(alignment_file), "fasta")
