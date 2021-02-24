@@ -1,56 +1,78 @@
 import argparse
 import sys
 from Bio import AlignIO
+
 import pkg.compositionMatrix as cm
 import pkg.chi2test as c2
 
 
 class ParseCommands(object):
 
-    def __init__(self):
+	def __init__(self):
 
-        parser = argparse.ArgumentParser(
-            description='Pretends to be git',
-            usage='''alntk <command> [<args>]
-				The most commonly used alntk commands are:
-    				chi2test''')
-
-        parser.add_argument("command", help="Subcommand to run")
+		parser = argparse.ArgumentParser(
+			description='multiple sequence alignment toolkit',
+			usage='''alntk <command> [<args>]
+			The most commonly used alntk commands are:
+				chi2test''')
+		parser.add_argument("command", help="Subcommand to run")
+		
         # parse_args defaults to [1:] for args, but you need to
         # exclude the rest of the args too, or validation will fail
-        args = parser.parse_args(sys.argv[1:2])
-        if not hasattr(self, args.command):
-            print("Unrecognized command")
-            parser.print_help()
-            exit(1)
-        self.args = parser.parse_args(sys.argv[1:2])
+		args = parser.parse_args(sys.argv[1:2])
+		if not hasattr(self, args.command):
+			print("Unrecognized command")
+			parser.print_help()
+			exit(1)
+		self.args = parser.parse_args(sys.argv[1:2])
         # use dispatch pattern to invoke method with same name
-        getattr(self, args.command)()
+		getattr(self, args.command)()
 
-    def chi2test(self):
-        parser = argparse.ArgumentParser(
-            description="Creates cysteine motif json file")
-        parser.add_argument('fasta')
-        args = parser.parse_args(sys.argv[2:])
+	def chi2test(self):
+		parser = argparse.ArgumentParser(
+			description="Runs chi-square composition analysis on multiple sequence alignment")
+		parser.add_argument('fasta')
+		parser.add_argument('-out',type = str,default = "chi2results.txt")
+		parser.add_argument('-format',
+                    choices=["clustal",
+							"emboss",
+							"fasta",
+							"fasta-m10",
+							"ig",
+							"maf",
+							"mauve",
+							"msf",
+							"nexus",
+							"phylip",
+							"phylip-sequential",
+							"phylip-relaxed",
+							"stockholm"],
+					default="fasta",
+                    help='Special testing value')
+		
+		
+		args = parser.parse_args(sys.argv[2:])
 
-        self.args = args
-        print("Running alntk chi2test",self.args.fasta)
-        fasta_file = self.args.fasta
-        print(fasta_file)
-
-        return(self.args)
+		self.args = args
+		print("Running alntk chi2test",self.args.fasta)
+		fasta_file = self.args.fasta
+		return(self.args)
 
     
 
 def run():
-	print("hello world")
 	alntk_args = ParseCommands().args
 	alignment_file = alntk_args.fasta
-	alignment = AlignIO.read(open(alignment_file), "fasta")
+	alignment = AlignIO.read(open(alignment_file), alntk_args.format)
 	compDF = cm.compositionMatrix(alignment)
-	compDF.to_csv("compDF.csv")
-	print(c2.chi2test(compDF))
+	# print(compDF)
+	
+	compDFchi2 = c2.chi2test(compDF)
+	compDFchi2["passed"] = compDFchi2["p-value"] > 0.05
+	
+	compDFchi2.to_csv(alntk_args.out,sep="\t")
+	
 	
     
-# alignment = AlignIO.read(open("PF09395_seed.sth"), "stockholm")
+
 
